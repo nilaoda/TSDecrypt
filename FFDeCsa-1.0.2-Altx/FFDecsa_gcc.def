@@ -1,0 +1,5 @@
+EXPORTS
+    decrypt_packets   = decrypt_packets@8 @1
+    get_keyset_size   = get_keyset_size@0 @2
+    set_control_words = set_control_words@12 @3
+    get_parallelism   = get_internal_parallelism@0 @4

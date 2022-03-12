@@ -1,0 +1,5 @@
+EXPORTS
+    decrypt_packets		= _Z15decrypt_packetsPPhP10csa_keys_t@8 @1
+    get_keyset_size	 	= _Z15get_keyset_sizev@0 @2
+    set_control_words 		= _Z17set_control_wordsPhS_P10csa_keys_t@12 @3
+    get_parallelism 		= _Z24get_internal_parallelismv@0 @4
