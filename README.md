@@ -8,7 +8,7 @@
 * `x86` 机器使用 `PARALLEL_064_MMX` ，在主流CPU上解密速度可达**110MB/s**.
 * `x64` 机器使用 `PARALLEL_064_LONG` ，在主流CPU上解密速度可达**180MB/s**.
 
-# Compile on Windows
+# Compile dll on Windows
 * `x86` https://sourceforge.net/projects/mingw/
 * `x64` https://winlibs.com/
 
