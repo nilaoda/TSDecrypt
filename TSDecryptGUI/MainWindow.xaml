@@ -1,0 +1,99 @@
+﻿<Window x:Class="TSDecryptGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TSDecryptGUI"
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen"
+        Title="TSDecryptGUI" Height="450" Width="700">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"></RowDefinition>
+            <RowDefinition Height="70"></RowDefinition>
+            <RowDefinition Height="7*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <GroupBox x:Name="GroupBox_Input" Grid.Row="0" Margin="0,0,0,10" AllowDrop="True"
+                  Drop="GroupBox_Input_Drop"
+                  PreviewDragOver="GroupBox_Input_PreviewDragOver">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontSize="12" FontWeight="Heavy" Foreground="#70a1ff">输入TS文件(请拖入或选择)</TextBlock>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid Margin="0,5,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="80"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="Txt_InputFile" Grid.Column="0" VerticalContentAlignment="Center"/>
+                <Button x:Name="Btn_SelectFile" Grid.Column="1" Click="Btn_SelectFile_Click">选择文件</Button>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="GroupBox_Output" Grid.Row="1" Margin="0,0,0,10" AllowDrop="True"
+                  Drop="GroupBox_Output_Drop"
+                  PreviewDragOver="GroupBox_Output_PreviewDragOver">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontSize="12" FontWeight="Heavy" Foreground="#70a1ff">输出TS文件(请拖入或选择)</TextBlock>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid Margin="0,5,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="80"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="Txt_OutputFile" Grid.Column="0" VerticalContentAlignment="Center"/>
+                <Button x:Name="Btn_SelectOutputFile" Grid.Column="1" Click="Btn_SelectOutputFile_Click">选择文件</Button>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="2" Margin="0,0,0,10">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontSize="12" FontWeight="Heavy" Foreground="#70a1ff">解密选项</TextBlock>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">KEY：</TextBlock>
+                    <TextBox x:Name="Txt_InputKey" Grid.Column="1" FontFamily="Consolas" FontWeight="Black" Foreground="#2ed573" VerticalContentAlignment="Center" ToolTip="输入6字节或8字节KEY"/>
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0,0,0">Pkts Offset：</TextBlock>
+                    <TextBox x:Name="Txt_PktsOffset" Grid.Column="3" FontFamily="Consolas" FontWeight="Black" VerticalContentAlignment="Center" Text="0" ToolTip="从第n+1个TS包开始解密"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">刷新间隔：</TextBlock>
+                    <TextBox x:Name="Txt_TimerInterval" Grid.Column="1" FontFamily="Consolas" FontWeight="Black" MaxLength="16" VerticalContentAlignment="Center" ToolTip="每n毫秒汇报进度" Text="1000"/>
+                </Grid>
+                <TextBlock Grid.Row="3" Margin="5,0,0,0" VerticalAlignment="Center">解密状态：</TextBlock>
+                <TextBlock Grid.Row="3" x:Name="Txt_Status" Margin="70,0,0,0" VerticalAlignment="Center"></TextBlock>
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar x:Name="ProBar" Maximum="1000" Grid.Column="0" Value="0"/>
+                    <Button x:Name="Btn_DoDecrypt" Grid.Column="1" Click="Btn_DoDecrypt_Click">开始解密</Button>
+                </Grid>
+                
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>
