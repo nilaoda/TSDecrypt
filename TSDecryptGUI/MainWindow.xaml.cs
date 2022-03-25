@@ -145,8 +145,16 @@ namespace TSDecryptGUI
                 var ts = files.Where(f => Path.GetExtension(f).ToUpper() == ".TS");
                 if (ts.Any())
                 {
-                    Txt_InputFile.Text = string.Join(";", ts);
-                    ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text.Split(';').First()));
+                    //按住Ctrl键时 新增文件
+                    if (e.KeyStates == DragDropKeyStates.ControlKey)
+                    {
+                        Txt_InputFile.Text = string.Join(";", Txt_InputFile.Text.Split(';').Concat(ts));
+                    }
+                    else
+                    {
+                        Txt_InputFile.Text = string.Join(";", ts);
+                        ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text.Split(';').First()));
+                    }
                 }
             }
         }
