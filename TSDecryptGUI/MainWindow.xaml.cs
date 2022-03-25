@@ -97,15 +97,16 @@ namespace TSDecryptGUI
         /// <param name="dir">输出文件目录</param>
         private void ChangeOutputFile(string dir)
         {
-            var input = Txt_InputFile.Text;
+            var input = Txt_InputFile.Text.Split(';').First();
             Txt_OutputFile.Text = Path.Combine(dir, Path.GetFileNameWithoutExtension(input) + "_dec" + Path.GetExtension(input));
         }
 
-        private void SelectedFile(UIElement ele, Handler any = null)
+        private void SelectedFile(UIElement ele, Handler any = null, bool multiFile = false)
         {
             var textbox = ele as TextBox;
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "MPEG-TS文件(*.ts)|*.ts";
+            openFileDialog.Multiselect = multiFile;
             if (openFileDialog.ShowDialog() == true)
             {
                 textbox.Text = openFileDialog.FileName;
@@ -117,8 +118,8 @@ namespace TSDecryptGUI
         {
             SelectedFile(Txt_InputFile, () =>
             {
-                ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text));
-            });
+                ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text.Split(';').First()));
+            }, true);
         }
 
         private void Btn_SelectOutputFile_Click(object sender, RoutedEventArgs e)
@@ -144,8 +145,8 @@ namespace TSDecryptGUI
                 var ts = files.Where(f => Path.GetExtension(f).ToUpper() == ".TS");
                 if (ts.Any())
                 {
-                    Txt_InputFile.Text = ts.First();
-                    ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text));
+                    Txt_InputFile.Text = string.Join(";", ts);
+                    ChangeOutputFile(Path.GetDirectoryName(Txt_InputFile.Text.Split(';').First()));
                 }
             }
         }
@@ -181,6 +182,15 @@ namespace TSDecryptGUI
         {
             try
             {
+                if (tmr != null)
+                {
+                    tmr.Dispose();
+                    tmr = new Timer()
+                    {
+                        AutoReset = true
+                    };
+                }
+
                 if (Btn_DoDecrypt.Content.ToString() == "停止")
                 {
                     DONE = true;
@@ -205,9 +215,7 @@ namespace TSDecryptGUI
                 {
                     offset = Convert.ToInt64(Txt_PktsOffset.Text) * PACKET_SIZE;
                 }
-                DE_SIZE = LAST_SIZE = MESS_COUNT = 0;
-                TIME_SPAN = 0d;
-                TOTOAL_SIZE = new FileInfo(Txt_InputFile.Text).Length - offset;
+                TOTOAL_SIZE = Txt_InputFile.Text.Split(';').Sum(f => new FileInfo(f).Length) - offset;
                 if (TOTOAL_SIZE == 0)
                 {
                     throw new Exception("输入文件为空!!");
@@ -222,6 +230,8 @@ namespace TSDecryptGUI
                     throw new Exception("输出磁盘空间不足!!");
                 }
 
+                DE_SIZE = LAST_SIZE = MESS_COUNT = 0;
+                TIME_SPAN = 0d;
                 DONE = false;
                 ProBar.Value = 0;
                 var tsdecrypt = new TSDecrypt();
@@ -281,47 +291,50 @@ namespace TSDecryptGUI
             var buffer = new byte[PACKET_SIZE * tsdecrypt.PARALL_SIZE]; // 64 TS Packets
             int readSize;
             var errorDic = new Dictionary<long, int>(); //Position == Counter
-            using (var stream = new FileStream(input, FileMode.Open, FileAccess.Read))
+            using (var output = new BufferedStream(new FileStream(outpout, FileMode.Create)))
             {
-                //偏移
-                if (offset < stream.Length) stream.Position = offset;
-                using (var output = new BufferedStream(new FileStream(outpout, FileMode.Create)))
+                foreach (var oneFile in input.Split(';'))
                 {
-                    tmr.Start(); //开始刷新状态
-                    while (!DONE && (readSize = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    using (var stream = new FileStream(oneFile, FileMode.Open, FileAccess.Read))
                     {
-                        if (buffer[0] != 0x47)
+                        //偏移
+                        if (offset < stream.Length) stream.Position = offset;
+                        tmr.Start(); //开始刷新状态
+                        while (!DONE && (readSize = stream.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            stream.Position = stream.Position - readSize + 1;
-                            continue;
-                        }
-                        //var before = new byte[buffer.Length];
-                        //Array.Copy(buffer, 0, before, 0, buffer.Length);
-                        //解密buffer中的数据
-                        var result = tsdecrypt.DecryptBytes(readSize, ref buffer);
-                        if (result != -1)
-                        {
-                            output.Write(buffer, 0, readSize);
-                            DE_SIZE += readSize;
-                        }
-                        else
-                        {
-                            MESS_COUNT++;
-                            TOTOAL_SIZE -= 188;
-                            stream.Position = stream.Position - readSize + 188;
-                            if (errorDic.Keys.Count > 0 && stream.Position == errorDic.Keys.Last() + 188 * errorDic[errorDic.Keys.Last()]) 
+                            if (buffer[0] != 0x47)
                             {
-                                errorDic[errorDic.Keys.Last()]++;
+                                stream.Position = stream.Position - readSize + 1;
+                                continue;
+                            }
+                            //var before = new byte[buffer.Length];
+                            //Array.Copy(buffer, 0, before, 0, buffer.Length);
+                            //解密buffer中的数据
+                            var result = tsdecrypt.DecryptBytes(readSize, ref buffer);
+                            if (result != -1)
+                            {
+                                output.Write(buffer, 0, readSize);
+                                DE_SIZE += readSize;
                             }
                             else
                             {
-                                errorDic[stream.Position] = 1;
+                                MESS_COUNT++;
+                                TOTOAL_SIZE -= 188;
+                                stream.Position = stream.Position - readSize + 188;
+                                if (errorDic.Keys.Count > 0 && stream.Position == errorDic.Keys.Last() + 188 * errorDic[errorDic.Keys.Last()])
+                                {
+                                    errorDic[errorDic.Keys.Last()]++;
+                                }
+                                else
+                                {
+                                    errorDic[stream.Position] = 1;
+                                }
+                                continue;
                             }
-                            continue;
                         }
                     }
-                    DONE = true;
                 }
+                DONE = true;
             }
             if (errorDic.Count > 0)
             {
