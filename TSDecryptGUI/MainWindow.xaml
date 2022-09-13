@@ -81,6 +81,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">刷新间隔：</TextBlock>
                     <TextBox x:Name="Txt_TimerInterval" Grid.Column="1" FontFamily="Consolas" FontWeight="Black" MaxLength="16" VerticalContentAlignment="Center" ToolTip="每n毫秒汇报进度" Text="1000"/>
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0,0,0">Pkts Limit：</TextBlock>
+                    <TextBox x:Name="Txt_PktsLimit" Grid.Column="3" FontFamily="Consolas" FontWeight="Black" VerticalContentAlignment="Center" Text="0" ToolTip="输出个TS包后停止"/>
                 </Grid>
                 <TextBlock Grid.Row="3" Margin="5,0,0,0" VerticalAlignment="Center">解密状态：</TextBlock>
                 <TextBlock Grid.Row="3" x:Name="Txt_Status" Margin="70,0,0,0" VerticalAlignment="Center"></TextBlock>
@@ -90,7 +92,7 @@
                         <ColumnDefinition Width="80"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <ProgressBar x:Name="ProBar" Maximum="1000" Grid.Column="0" Value="0"/>
-                    <Button x:Name="Btn_DoDecrypt" Grid.Column="1" Click="Btn_DoDecrypt_Click">开始解密</Button>
+                    <Button x:Name="Btn_DoDecrypt" Grid.Column="1" Click="Btn_DoDecrypt_Click" Height="30" VerticalAlignment="Bottom">开始解密</Button>
                 </Grid>
                 
             </Grid>

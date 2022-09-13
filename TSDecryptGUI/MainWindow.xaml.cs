@@ -215,6 +215,7 @@ namespace TSDecryptGUI
 
                 tmr.Interval = Convert.ToDouble(Txt_TimerInterval.Text);
                 var offset = 0L;
+                var limit = 0L;
                 if (Txt_PktsOffset.Text.StartsWith("0x"))
                 {
                     offset = Convert.ToInt64(Txt_PktsOffset.Text.Substring(2), 16) * PACKET_SIZE;
@@ -223,6 +224,19 @@ namespace TSDecryptGUI
                 {
                     offset = Convert.ToInt64(Txt_PktsOffset.Text) * PACKET_SIZE;
                 }
+
+                if (!string.IsNullOrEmpty(Txt_PktsLimit.Text))
+                {
+                    if (Txt_PktsLimit.Text.StartsWith("0x"))
+                    {
+                        limit = Convert.ToInt64(Txt_PktsLimit.Text.Substring(2), 16) * PACKET_SIZE;
+                    }
+                    else
+                    {
+                        limit = Convert.ToInt64(Txt_PktsLimit.Text) * PACKET_SIZE;
+                    }
+                }
+
                 TOTOAL_SIZE = Txt_InputFile.Text.Split(';').Sum(f => new FileInfo(f).Length) - offset;
                 if (TOTOAL_SIZE == 0)
                 {
@@ -246,7 +260,7 @@ namespace TSDecryptGUI
                 tsdecrypt.SetKey(keyTxt);
                 tmr.Elapsed += ReportStatus;
                 Btn_DoDecrypt.Content = "停止";
-                await DecryptTaskAsync(tsdecrypt, offset, Txt_InputFile.Text, Txt_OutputFile.Text);
+                await DecryptTaskAsync(tsdecrypt, offset, limit, Txt_InputFile.Text, Txt_OutputFile.Text);
                 DONE = true;
                 if (EXIT_AFTER_DOWN)
                 {
@@ -289,12 +303,12 @@ namespace TSDecryptGUI
             }));
         }
 
-        async Task DecryptTaskAsync(TSDecrypt tsdecrypt, long offset, string input, string outpout)
+        async Task DecryptTaskAsync(TSDecrypt tsdecrypt, long offset, long limit, string input, string outpout)
         {
-            await Task.Run(() => DecryptTask(tsdecrypt, offset, input, outpout));
+            await Task.Run(() => DecryptTask(tsdecrypt, offset, limit, input, outpout));
         }
 
-        void DecryptTask(TSDecrypt tsdecrypt, long offset, string input, string outpout)
+        void DecryptTask(TSDecrypt tsdecrypt, long offset, long limit, string input, string outpout)
         {
             var buffer = new byte[PACKET_SIZE * tsdecrypt.PARALL_SIZE]; // 64 TS Packets
             int readSize;
@@ -310,6 +324,12 @@ namespace TSDecryptGUI
                         tmr.Start(); //开始刷新状态
                         while (!DONE && (readSize = stream.Read(buffer, 0, buffer.Length)) > 0)
                         {
+                            //解密限制
+                            if (DE_SIZE > limit)
+                            {
+                                TOTOAL_SIZE = DE_SIZE;
+                                break;
+                            }
                             if (buffer[0] != 0x47)
                             {
                                 stream.Position = stream.Position - readSize + 1;
