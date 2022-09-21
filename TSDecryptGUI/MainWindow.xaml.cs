@@ -325,7 +325,7 @@ namespace TSDecryptGUI
                         while (!DONE && (readSize = stream.Read(buffer, 0, buffer.Length)) > 0)
                         {
                             //解密限制
-                            if (DE_SIZE > limit)
+                            if (limit != 0 && DE_SIZE > limit)
                             {
                                 TOTOAL_SIZE = DE_SIZE;
                                 break;
