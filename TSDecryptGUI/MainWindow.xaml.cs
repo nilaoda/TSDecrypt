@@ -238,6 +238,7 @@ namespace TSDecryptGUI
                 }
 
                 TOTOAL_SIZE = Txt_InputFile.Text.Split(';').Sum(f => new FileInfo(f).Length) - offset;
+                if (limit != 0) TOTOAL_SIZE = limit;
                 if (TOTOAL_SIZE == 0)
                 {
                     throw new Exception("输入文件为空!!");
