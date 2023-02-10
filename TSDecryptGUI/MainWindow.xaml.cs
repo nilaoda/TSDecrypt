@@ -30,7 +30,8 @@ namespace TSDecryptGUI
         };
 
 
-        bool EXIT_AFTER_DOWN = false;
+        bool EXIT_AFTER_DONE = false;
+        bool DELETE_AFTER_DONE = false;
         bool OVER_WRITTEN = false;
 
 
@@ -46,13 +47,15 @@ namespace TSDecryptGUI
                  *      --output-dir <str>                Set output directory
                  *      --key <str>                       Set decryption key
                  *      --auto                            Auto decrypt, then close
+                 *      --del                             Delete source after done
+                 *      --no-check                        Do not check CW
                  */
                 #region 解密命令行
                 var args = new List<string>(Environment.GetCommandLineArgs());
                 if (args.Count > 1 && File.Exists(args[1]) && Path.GetExtension(args[1]).ToLower() == ".ts") 
                 {
                     //输入文件
-                    Txt_InputFile.Text = args[1];
+                    Txt_InputFile.Text = Path.GetFullPath(args[1]);
                     //输出文件
                     var i1 = args.IndexOf("--output-file");
                     var ii1 = args.IndexOf("--output-dir");
@@ -76,12 +79,22 @@ namespace TSDecryptGUI
                         var key = args[i2 + 1];
                         Txt_InputKey.Text = key;
                     }
+                    //自动删除
+                    if (args.Contains("--del"))
+                    {
+                        DELETE_AFTER_DONE = true;
+                    }
                     //自动关闭
                     if (args.Contains("--auto"))
                     {
-                        EXIT_AFTER_DOWN = true;
+                        EXIT_AFTER_DONE = true;
                         OVER_WRITTEN = true;
                         Btn_DoDecrypt.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    }
+                    //不检测
+                    if (args.Contains("--no-check"))
+                    {
+                        Chk_CheckCW.IsChecked = false;
                     }
                 }
                 #endregion
@@ -253,6 +266,17 @@ namespace TSDecryptGUI
                     throw new Exception("输出磁盘空间不足!!");
                 }
 
+
+                //检测KEY是否正确
+                if (Chk_CheckCW.IsChecked == true)
+                {
+                    Btn_DoDecrypt.IsEnabled = false;
+                    if (!await Util.CheckCWAsync(keyTxt, Txt_InputFile.Text))
+                        throw new Exception("CW错误或非加密文件!!");
+                }
+
+
+                Btn_DoDecrypt.IsEnabled = true;
                 DE_SIZE = LAST_SIZE = MESS_COUNT = 0;
                 TIME_SPAN = 0d;
                 DONE = false;
@@ -263,7 +287,15 @@ namespace TSDecryptGUI
                 Btn_DoDecrypt.Content = "停止";
                 await DecryptTaskAsync(tsdecrypt, offset, limit, Txt_InputFile.Text, Txt_OutputFile.Text);
                 DONE = true;
-                if (EXIT_AFTER_DOWN)
+                if (DELETE_AFTER_DONE)
+                {
+                    if (File.Exists(Txt_InputFile.Text) && File.Exists(Txt_OutputFile.Text))
+                    {
+                        var sizeDiff = Math.Abs(new FileInfo(Txt_InputFile.Text).Length - new FileInfo(Txt_OutputFile.Text).Length);
+                        if (sizeDiff <= 10 * 1024 * 1024) File.Delete(Txt_InputFile.Text);
+                    }
+                }
+                if (EXIT_AFTER_DONE)
                 {
                     //退出程序
                     Environment.Exit(0);
@@ -271,6 +303,7 @@ namespace TSDecryptGUI
             }
             catch (Exception ex)
             {
+                Btn_DoDecrypt.IsEnabled = true;
                 Btn_DoDecrypt.Content = "开始解密";
                 tmr.Stop();
                 MessageUtil.AlertInfo(ex.Message);
@@ -373,6 +406,11 @@ namespace TSDecryptGUI
                     $"{Environment.NewLine}{Environment.NewLine}Total: {errorDic.Values.Sum()} packets skipped"
                     );
             }
+        }
+
+        private void Chk_Del_Checked(object sender, RoutedEventArgs e)
+        {
+            DELETE_AFTER_DONE = Chk_Del.IsChecked == true;
         }
     }
 }

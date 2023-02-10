@@ -19,6 +19,8 @@ TSDecryptGUI <INPUT_FILE> [OPTIONS]
   --output-dir <str>                Set output directory
   --key <str>                       Set decryption key
   --auto                            Auto decrypt, then close
+  --del                             Delete source after done
+  --no-check                        Do not check CW
 ```
 # Thanks
 

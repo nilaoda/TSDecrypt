@@ -56,6 +56,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition></RowDefinition>
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="30"></RowDefinition>
@@ -84,9 +85,21 @@
                     <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0,0,0">Pkts Limit：</TextBlock>
                     <TextBox x:Name="Txt_PktsLimit" Grid.Column="3" FontFamily="Consolas" FontWeight="Black" VerticalContentAlignment="Center" Text="0" ToolTip="输出n个TS包后停止"/>
                 </Grid>
-                <TextBlock Grid.Row="3" Margin="5,0,0,0" VerticalAlignment="Center">解密状态：</TextBlock>
-                <TextBlock Grid.Row="3" x:Name="Txt_Status" Margin="70,0,0,0" VerticalAlignment="Center"></TextBlock>
-                <Grid Grid.Row="4">
+                <Grid Grid.Row="2" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="80"></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">完成后删除：</TextBlock>
+                    <CheckBox Grid.Column="1" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_Del" Checked="Chk_Del_Checked" Unchecked="Chk_Del_Checked"/>
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0,0,0">验证CW：</TextBlock>
+                    <CheckBox Grid.Column="3" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_CheckCW" IsChecked="True"/>
+                </Grid>
+                <TextBlock Grid.Row="4" Margin="5,0,0,0" VerticalAlignment="Center">解密状态：</TextBlock>
+                <TextBlock Grid.Row="4" x:Name="Txt_Status" Margin="70,0,0,0" VerticalAlignment="Center"></TextBlock>
+                <Grid Grid.Row="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition></ColumnDefinition>
                         <ColumnDefinition Width="80"></ColumnDefinition>
