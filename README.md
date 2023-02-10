@@ -22,6 +22,22 @@ TSDecryptGUI <INPUT_FILE> [OPTIONS]
   --del                             Delete source after done
   --no-check                        Do not check CW
 ```
+
+# Batch Jobs
+Create `.bat` file, write command one by one:
+```bat
+:: Target file: D:\FEED_1_dec.ts
+start /wait TSDecryptGUI.exe D:\FEED_1.ts --key 2021084925aaaa79 --auto
+
+:: Delete source after decryption. Target file: G:\DEC\FEED_2_dec.ts
+start /wait TSDecryptGUI.exe D:\FEED_2.ts --key 2022014317aacc8d --output-dir G:\DEC --auto --del
+
+:: Set output file. Target file: G:\DEC\3.ts
+start /wait TSDecryptGUI.exe D:\FEED_3.ts --key 2022014317aacc8d --output-file G:\DEC\3.ts --auto --del
+```
+Run `.bat`
+
+
 # Thanks
 
 **fatih89r**, 
