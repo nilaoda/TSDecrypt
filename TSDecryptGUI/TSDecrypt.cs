@@ -11,13 +11,13 @@ namespace TSDecryptGUI
 {
     internal class TSDecrypt
     {
-        [DllImport("FFDecsa", EntryPoint = "_Z15decrypt_packetsPPhP10csa_keys_t", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("FFDecsa_128_2LONG", EntryPoint = "_Z15decrypt_packetsPPhP10csa_keys_t", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         static unsafe extern int decrypt_packets(byte*[] cluster, ref csa_keys_t csa_keys_t);
-        [DllImport("FFDecsa", EntryPoint = "_Z15get_keyset_sizev")]
+        [DllImport("FFDecsa_128_2LONG", EntryPoint = "_Z15get_keyset_sizev")]
         static extern int get_keyset_size();
-        [DllImport("FFDecsa", EntryPoint = "_Z24get_internal_parallelismv")]
+        [DllImport("FFDecsa_128_2LONG", EntryPoint = "_Z24get_internal_parallelismv")]
         static extern int get_parallelism();
-        [DllImport("FFDecsa", EntryPoint = "_Z17set_control_wordsPhS_P10csa_keys_t", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("FFDecsa_128_2LONG", EntryPoint = "_Z17set_control_wordsPhS_P10csa_keys_t", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
         static unsafe extern void set_control_words(byte[] even, byte[] odd, ref csa_keys_t csa_keys_t);
 
         static csa_keys_t KEY_SET = new csa_keys_t();
@@ -27,50 +27,48 @@ namespace TSDecryptGUI
          * X64 PARALLEL_064_LONG
          */
 
-        [StructLayout(LayoutKind.Explicit)]
-        public struct csa_keys_t
-        {
-            [FieldOffset(0)] public csa_key_t even;
-            [FieldOffset(1600)] public csa_key_t odd;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        public unsafe struct csa_key_t
-        {
-            [FieldOffset(0)] public fixed byte ck[8];
-            [FieldOffset(8)] public fixed int iA[8];
-            [FieldOffset(40)] public fixed int iB[8];
-            [FieldOffset(72)] public fixed int ck_g[64 * 2];
-            [FieldOffset(584)] public fixed int iA_g[32 * 2];
-            [FieldOffset(840)] public fixed int iB_g[32 * 2];
-            [FieldOffset(1096)] public fixed byte kk[56];
-            [FieldOffset(1152)] public fixed uint kkmulti[56 * 2];
-        }
+        //[StructLayout(LayoutKind.Explicit)]
+        //public struct csa_keys_t
+        //{
+        //    [FieldOffset(0)] public csa_key_t even;
+        //    [FieldOffset(1600)] public csa_key_t odd;
+        //}
+        //
+        //[StructLayout(LayoutKind.Explicit)]
+        //public unsafe struct csa_key_t
+        //{
+        //    [FieldOffset(0)] public fixed byte ck[8];
+        //    [FieldOffset(8)] public fixed int iA[8];
+        //    [FieldOffset(40)] public fixed int iB[8];
+        //    [FieldOffset(72)] public fixed int ck_g[64 * 2];
+        //    [FieldOffset(584)] public fixed int iA_g[32 * 2];
+        //    [FieldOffset(840)] public fixed int iB_g[32 * 2];
+        //    [FieldOffset(1096)] public fixed byte kk[56];
+        //    [FieldOffset(1152)] public fixed uint kkmulti[56 * 2];
+        //}
 
         /**
-         * X86 PARALLEL_064_MMX
-        
-        [StructLayout(LayoutKind.Explicit)]
+         * X64 PARALLEL_128_2LONG
+         */
+
         public struct csa_keys_t
         {
-            [FieldOffset(0)] public csa_key_t even;
-            [FieldOffset(1616)] public csa_key_t odd;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        public unsafe struct csa_key_t
-        {
-            [FieldOffset(0)] public fixed byte ck[8];
-            [FieldOffset(8)] public fixed int iA[8];
-            [FieldOffset(40)] public fixed int iB[8];
-            [FieldOffset(80)] public fixed int ck_g[64 * 2];      
-            [FieldOffset(592)] public fixed int iA_g[32 * 2];     
-            [FieldOffset(848)] public fixed int iB_g[32 * 2];     
-            [FieldOffset(1104)] public fixed byte kk[56];         
-            [FieldOffset(1168)] public fixed uint kkmulti[56 * 2];
+            public csa_key_t even;
+            public csa_key_t odd;
         }
         
-         */
+        public unsafe struct csa_key_t
+        {
+            public fixed byte ck[8];
+            public fixed int iA[8];
+            public fixed int iB[8];
+            public fixed int ck_g[64 * 4];
+            public fixed int iA_g[32 * 4];
+            public fixed int iB_g[32 * 4];
+            public fixed byte kk[56];
+            public fixed uint kkmulti[56 * 4];
+        }
+        
 
         public void SetKey(string keyTxt)
         {

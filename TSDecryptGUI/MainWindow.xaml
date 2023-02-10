@@ -92,10 +92,23 @@
                         <ColumnDefinition Width="80"></ColumnDefinition>
                         <ColumnDefinition></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">完成后删除：</TextBlock>
-                    <CheckBox Grid.Column="1" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_Del" Checked="Chk_Del_Checked" Unchecked="Chk_Del_Checked"/>
-                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0,0,0">验证CW：</TextBlock>
-                    <CheckBox Grid.Column="3" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_CheckCW" IsChecked="True"/>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">FFDecsa：</TextBlock>
+                    <ComboBox IsEnabled="False" Grid.Column="1" VerticalAlignment="Center" x:Name="CB_Dll" FontFamily="Consolas">
+                        <ComboBoxItem IsSelected="True">FFDecsa_128_2LONG</ComboBoxItem>
+                        <ComboBoxItem>FFDecsa_128_2LONG_C2</ComboBoxItem>
+                        <ComboBoxItem>FFDecsa_064_LONG</ComboBoxItem>
+                        <ComboBoxItem>FFDecsa_064_LONG_C2</ComboBoxItem>
+                    </ComboBox>
+                    <Grid Grid.Column="2" Grid.ColumnSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0">附加选项：</TextBlock>
+                        <CheckBox Grid.Column="1" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_Del" Checked="Chk_Del_Checked" Unchecked="Chk_Del_Checked">解密后删除</CheckBox>
+                        <CheckBox Grid.Column="2" VerticalAlignment="Center" Cursor="Hand" x:Name="Chk_CheckCW" IsChecked="True">验证CW正确性</CheckBox>
+                    </Grid>
                 </Grid>
                 <TextBlock Grid.Row="4" Margin="5,0,0,0" VerticalAlignment="Center">解密状态：</TextBlock>
                 <TextBlock Grid.Row="4" x:Name="Txt_Status" Margin="70,0,0,0" VerticalAlignment="Center"></TextBlock>

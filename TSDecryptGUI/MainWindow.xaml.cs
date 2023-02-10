@@ -266,7 +266,6 @@ namespace TSDecryptGUI
                     throw new Exception("输出磁盘空间不足!!");
                 }
 
-
                 //检测KEY是否正确
                 if (Chk_CheckCW.IsChecked == true)
                 {
@@ -334,6 +333,14 @@ namespace TSDecryptGUI
                     $"{(MESS_COUNT > 0 ? ", Errors: " + MESS_COUNT : "")}";
                 LAST_SIZE = DE_SIZE;
                 ProBar.Value = Math.Ceiling((double)DE_SIZE / TOTOAL_SIZE * 1000);
+                //完成后报告
+                if (ProBar.Value == ProBar.Maximum)
+                {
+                    ProBar.Value = 0;
+                    Txt_Status.Text = $"耗时: {Util.FormatTime((int)(TIME_SPAN / 1000))}, " +
+                    $"平均速度: {Util.FormatFileSize(DE_SIZE / TIME_SPAN * 1000)}/s, " +
+                    $"进度: {Util.FormatFileSize(DE_SIZE)}/{Util.FormatFileSize(TOTOAL_SIZE)} ({((double)DE_SIZE / TOTOAL_SIZE * 100).ToString("0.00")}%)";
+                }
             }));
         }
 
