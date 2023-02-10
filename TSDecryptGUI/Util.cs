@@ -80,7 +80,10 @@ namespace TSDecryptGUI
                     stream.Read(buffer, 0, buffer.Length);
                     stream.Read(buffer2, 0, buffer.Length);
                     if (buffer[0] == 0x47 && buffer2[0] == 0x47)
+                    {
+                        stream.Position = offset;
                         break;
+                    }
                     stream.Position = ++offset;
                 }
                 var tsData = new byte[188];
