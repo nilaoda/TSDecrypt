@@ -66,7 +66,7 @@ namespace TSDecryptGUI
         /// <param name="data"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private static Tuple<string, string, string> GetTsSamples(int inputPid, byte[] data)
+        private static Tuple<string, string, string> GetTsSamples(int[] inputPids, byte[] data)
         {
             var list = new List<string>();
             var offset = 0;
@@ -86,22 +86,27 @@ namespace TSDecryptGUI
                     }
                     stream.Position = ++offset;
                 }
-                var tsData = new byte[188];
-                var size = 0;
-                while ((size = stream.Read(tsData, 0, tsData.Length)) > 0)
+                for (int n = 0; n < inputPids.Length && list.Count < 3; n++)
                 {
-                    var tsHeaderInt = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? tsData.Take(4).Reverse().ToArray() : tsData.Take(4).ToArray(), 0);
-                    var pid = (tsHeaderInt & 0x1fff00) >> 8;
-                    if (pid != inputPid)
-                        continue;
-                    var adaptationControl = (tsHeaderInt & 0x30) >> 4;
-                    var payloadUnitStart = (tsHeaderInt & 0x400000) >> 22;
-                    if (adaptationControl != 1 || payloadUnitStart != 1)
-                        continue;
-                    var hexString = BitConverter.ToString(tsData).Replace("-", "");
-                    list.Add(hexString);
-                    if (list.Count >= 3)
-                        break;
+                    var inputPid = inputPids[n];
+                    stream.Position = offset; //复位
+                    var tsData = new byte[188];
+                    var size = 0;
+                    while ((size = stream.Read(tsData, 0, tsData.Length)) > 0)
+                    {
+                        var tsHeaderInt = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? tsData.Take(4).Reverse().ToArray() : tsData.Take(4).ToArray(), 0);
+                        var pid = (tsHeaderInt & 0x1fff00) >> 8;
+                        if (pid != inputPid)
+                            continue;
+                        var adaptationControl = (tsHeaderInt & 0x30) >> 4;
+                        var payloadUnitStart = (tsHeaderInt & 0x400000) >> 22;
+                        if (adaptationControl != 1 || payloadUnitStart != 1)
+                            continue;
+                        var hexString = BitConverter.ToString(tsData).Replace("-", "");
+                        list.Add(hexString);
+                        if (list.Count >= 3)
+                            break;
+                    }
                 }
             }
             if (list.Count < 3)
@@ -115,11 +120,11 @@ namespace TSDecryptGUI
         /// <param name="data"></param>
         /// <param name="count">置信次数</param>
         /// <returns></returns>
-        private static Tuple<bool, int> CheckIsEncrypted(byte[] data, int count = 20)
+        private static Tuple<bool, int[]> CheckIsEncrypted(byte[] data, int count = 20)
         {
+            var list = new List<int>(); //加密PID
             int counter = 0;
             bool enc = false;
-            int encPid = -1;
             var offset = 0;
             using (var stream = new MemoryStream(data))
             {
@@ -158,8 +163,7 @@ namespace TSDecryptGUI
                         if (++counter > count)
                         {
                             enc = true;
-                            encPid = (int)pid;
-                            break;
+                            list.Add((int)pid);
                         }
                     }
                     else
@@ -168,7 +172,8 @@ namespace TSDecryptGUI
                     }
                 }
             }
-            return new Tuple<bool, int>(enc, encPid);
+            if (list.Count == 0) list.Add(-1);
+            return new Tuple<bool, int[]>(enc, list.ToArray());
         }
 
         static TSDecrypt tsdecrypt = null;
@@ -183,8 +188,8 @@ namespace TSDecryptGUI
             }
             var isEnc = CheckIsEncrypted(data);
             if (isEnc.Item1 == false) return false;
-            var pid = isEnc.Item2;
-            var samples = GetTsSamples(pid, data);
+            var pidArray = isEnc.Item2;
+            var samples = GetTsSamples(pidArray, data);
             var ts1 = HexToBytes(samples.Item1);
             var ts2 = HexToBytes(samples.Item2);
             var ts3 = HexToBytes(samples.Item3);
