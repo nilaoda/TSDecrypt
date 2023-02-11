@@ -203,6 +203,17 @@ namespace TSDecryptGUI
         {
             try
             {
+                //测试速度
+                if (Txt_InputFile.Text.ToLower() == "benchmark")
+                {
+                    BenchmarkUtil.Run((size, time) =>
+                    {
+                        var speed = (double)size / time * 1000;
+                        MessageBox.Show($"{Util.FormatFileSize(speed)}/s", "最大解密速度");
+                    });
+                    return;
+                }
+
                 if (tmr != null)
                 {
                     tmr.Dispose();

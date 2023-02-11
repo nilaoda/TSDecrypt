@@ -92,6 +92,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BenchmarkUtil.cs" />
     <Compile Include="MessageUtil.cs" />
     <Compile Include="TSDecrypt.cs" />
     <Compile Include="Util.cs" />
