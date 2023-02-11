@@ -156,11 +156,13 @@ namespace TSDecryptGUI
         }
 
         static TSDecrypt tsdecrypt = null;
-        public static async Task<bool> CheckCWAsync(string keyTxt, string file)
+        public static async Task<bool> CheckCWAsync(string keyTxt, string file, long offset = 0)
         {
             var data = new byte[20 * 1024 * 1024];
             using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
             {
+                //偏移
+                if (offset < stream.Length) stream.Position = offset;
                 await stream.ReadAsync(data, 0, data.Length);
             }
             var isEnc = CheckIsEncrypted(data);

@@ -270,7 +270,7 @@ namespace TSDecryptGUI
                 if (Chk_CheckCW.IsChecked == true)
                 {
                     Btn_DoDecrypt.IsEnabled = false;
-                    if (!await Util.CheckCWAsync(keyTxt, Txt_InputFile.Text.Split(';').First())) 
+                    if (!await Util.CheckCWAsync(keyTxt, Txt_InputFile.Text.Split(';').First(), offset)) 
                         throw new Exception("CW错误或非加密文件!!");
                 }
 
