@@ -120,11 +120,27 @@ namespace TSDecryptGUI
             int counter = 0;
             bool enc = false;
             int encPid = -1;
-            for (int i = 0; i < data.Length; i++)
+            var offset = 0;
+            using (var stream = new MemoryStream(data))
             {
-                if (data[i] == 0x47 && (i + 188) < data.Length && data[i + 188] == 0x47)
+                //确定起始位置
+                while (true)
                 {
-                    var tsData = data.Skip(i).Take(188);
+                    var buffer = new byte[188];
+                    var buffer2 = new byte[188];
+                    stream.Read(buffer, 0, buffer.Length);
+                    stream.Read(buffer2, 0, buffer.Length);
+                    if (buffer[0] == 0x47 && buffer2[0] == 0x47)
+                    {
+                        stream.Position = offset;
+                        break;
+                    }
+                    stream.Position = ++offset;
+                }
+                var tsData = new byte[188];
+                var size = 0;
+                while ((size = stream.Read(tsData, 0, tsData.Length)) > 0)
+                {
                     var tsHeaderInt = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? tsData.Take(4).Reverse().ToArray() : tsData.Take(4).ToArray(), 0);
                     var pid = (tsHeaderInt & 0x1fff00) >> 8;
                     var adaptationControl = (tsHeaderInt & 0x30) >> 4;
