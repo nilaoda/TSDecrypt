@@ -64,12 +64,12 @@ namespace TSDecryptGUI
         /// </summary>
         /// <param name="inputPid"></param>
         /// <param name="data"></param>
-        /// <returns>data1, data2, data3, pesIndex</returns>
+        /// <returns>data1, data2, data3, pesIndex1, pesIndex2 pesIndex3</returns>
         /// <exception cref="Exception"></exception>
-        private static Tuple<string, string, string, int> GetTsSamples(int[] inputPids, byte[] data)
+        private static Tuple<string, string, string, int, int, int> GetTsSamples(int[] inputPids, byte[] data)
         {
-            var pesIndex = 4;
             var list = new List<string>();
+            var pesIndexList = new List<int>();
             var offset = 0;
             using (var stream = new MemoryStream(data))
             {
@@ -109,13 +109,14 @@ namespace TSDecryptGUI
                             var adaptationFieldLength = (int)tsData[4];
                             //跳过adaptationField
                             var startIndex = 5 + adaptationFieldLength;
-                            pesIndex = startIndex;
                             var hexString = BitConverter.ToString(tsData).Replace("-", "");
+                            pesIndexList.Add(startIndex);
                             list.Add(hexString);
                         }
                         else if (adaptationControl == 1)
                         {
                             var hexString = BitConverter.ToString(tsData).Replace("-", "");
+                            pesIndexList.Add(4);
                             list.Add(hexString);
                         }
                         if (list.Count >= 3)
@@ -125,7 +126,7 @@ namespace TSDecryptGUI
             }
             if (list.Count < 3)
                 throw new Exception("获取采样数据异常!");
-            return new Tuple<string, string, string, int>(list[0], list[1], list[2], pesIndex);
+            return new Tuple<string, string, string, int, int, int>(list[0], list[1], list[2], pesIndexList[0], pesIndexList[1], pesIndexList[2]);
         }
 
         /// <summary>
@@ -207,15 +208,18 @@ namespace TSDecryptGUI
             var ts1 = HexToBytes(samples.Item1);
             var ts2 = HexToBytes(samples.Item2);
             var ts3 = HexToBytes(samples.Item3);
-            var pesIndex = samples.Item4;
+            var pesIndex1 = samples.Item4;
+            var pesIndex2 = samples.Item5;
+            var pesIndex3 = samples.Item6;
+
             if (tsdecrypt == null) tsdecrypt = new TSDecrypt();
             tsdecrypt.SetKey(keyTxt);
             tsdecrypt.DecryptBytes(ts1.Length, ref ts1);
-            if (!(ts1[pesIndex] == 0x00 && ts1[pesIndex + 1] == 0x00 && ts1[pesIndex + 2] == 0x01)) return false;
+            if (!(ts1[pesIndex1] == 0x00 && ts1[pesIndex1 + 1] == 0x00 && ts1[pesIndex1 + 2] == 0x01)) return false;
             tsdecrypt.DecryptBytes(ts2.Length, ref ts2);
-            if (!(ts2[pesIndex] == 0x00 && ts2[pesIndex + 1] == 0x00 && ts2[pesIndex + 2] == 0x01)) return false;
+            if (!(ts2[pesIndex2] == 0x00 && ts2[pesIndex2 + 1] == 0x00 && ts2[pesIndex2 + 2] == 0x01)) return false;
             tsdecrypt.DecryptBytes(ts3.Length, ref ts3);
-            if (!(ts3[pesIndex] == 0x00 && ts3[pesIndex + 1] == 0x00 && ts3[pesIndex + 2] == 0x01)) return false;
+            if (!(ts3[pesIndex3] == 0x00 && ts3[pesIndex3 + 1] == 0x00 && ts3[pesIndex3 + 2] == 0x01)) return false;
             return true;
         }
     }
