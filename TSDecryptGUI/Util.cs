@@ -64,10 +64,11 @@ namespace TSDecryptGUI
         /// </summary>
         /// <param name="inputPid"></param>
         /// <param name="data"></param>
-        /// <returns></returns>
+        /// <returns>data1, data2, data3, pesIndex</returns>
         /// <exception cref="Exception"></exception>
-        private static Tuple<string, string, string> GetTsSamples(int[] inputPids, byte[] data)
+        private static Tuple<string, string, string, int> GetTsSamples(int[] inputPids, byte[] data)
         {
+            var pesIndex = 4;
             var list = new List<string>();
             var offset = 0;
             using (var stream = new MemoryStream(data))
@@ -100,10 +101,23 @@ namespace TSDecryptGUI
                             continue;
                         var adaptationControl = (tsHeaderInt & 0x30) >> 4;
                         var payloadUnitStart = (tsHeaderInt & 0x400000) >> 22;
-                        if (adaptationControl != 1 || payloadUnitStart != 1)
+                        if (payloadUnitStart != 1)
                             continue;
-                        var hexString = BitConverter.ToString(tsData).Replace("-", "");
-                        list.Add(hexString);
+                        if (adaptationControl == 3)
+                        {
+                            //adaptationField长度
+                            var adaptationFieldLength = (int)tsData[4];
+                            //跳过adaptationField
+                            var startIndex = 5 + adaptationFieldLength;
+                            pesIndex = startIndex;
+                            var hexString = BitConverter.ToString(tsData).Replace("-", "");
+                            list.Add(hexString);
+                        }
+                        else if (adaptationControl == 1)
+                        {
+                            var hexString = BitConverter.ToString(tsData).Replace("-", "");
+                            list.Add(hexString);
+                        }
                         if (list.Count >= 3)
                             break;
                     }
@@ -111,7 +125,7 @@ namespace TSDecryptGUI
             }
             if (list.Count < 3)
                 throw new Exception("获取采样数据异常!");
-            return new Tuple<string, string, string>(list[0], list[1], list[2]);
+            return new Tuple<string, string, string, int>(list[0], list[1], list[2], pesIndex);
         }
 
         /// <summary>
@@ -163,7 +177,7 @@ namespace TSDecryptGUI
                         if (++counter > count)
                         {
                             enc = true;
-                            list.Add((int)pid);
+                            if (!list.Contains((int)pid)) list.Add((int)pid);
                         }
                     }
                     else
@@ -193,14 +207,15 @@ namespace TSDecryptGUI
             var ts1 = HexToBytes(samples.Item1);
             var ts2 = HexToBytes(samples.Item2);
             var ts3 = HexToBytes(samples.Item3);
+            var pesIndex = samples.Item4;
             if (tsdecrypt == null) tsdecrypt = new TSDecrypt();
             tsdecrypt.SetKey(keyTxt);
             tsdecrypt.DecryptBytes(ts1.Length, ref ts1);
-            if (!(ts1[4] == 0x00 && ts1[5] == 0x00 && ts1[6] == 0x01)) return false;
+            if (!(ts1[pesIndex] == 0x00 && ts1[pesIndex + 1] == 0x00 && ts1[pesIndex + 2] == 0x01)) return false;
             tsdecrypt.DecryptBytes(ts2.Length, ref ts2);
-            if (!(ts2[4] == 0x00 && ts2[5] == 0x00 && ts2[6] == 0x01)) return false;
+            if (!(ts2[pesIndex] == 0x00 && ts2[pesIndex + 1] == 0x00 && ts2[pesIndex + 2] == 0x01)) return false;
             tsdecrypt.DecryptBytes(ts3.Length, ref ts3);
-            if (!(ts3[4] == 0x00 && ts3[5] == 0x00 && ts3[6] == 0x01)) return false;
+            if (!(ts3[pesIndex] == 0x00 && ts3[pesIndex + 1] == 0x00 && ts3[pesIndex + 2] == 0x01)) return false;
             return true;
         }
     }
