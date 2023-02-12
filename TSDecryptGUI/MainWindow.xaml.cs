@@ -393,8 +393,19 @@ namespace TSDecryptGUI
                             var result = tsdecrypt.DecryptBytes(readSize, ref buffer);
                             if (result != -1)
                             {
-                                output.Write(buffer, 0, readSize);
-                                DE_SIZE += readSize;
+                                if (result == (readSize / PACKET_SIZE)) 
+                                {
+                                    output.Write(buffer, 0, readSize);
+                                    DE_SIZE += readSize;
+                                }
+                                else
+                                {
+                                    //仅解密了部分，需要回退再解密
+                                    var toWriteSize = result * PACKET_SIZE;
+                                    output.Write(buffer, 0, toWriteSize);
+                                    DE_SIZE += toWriteSize;
+                                    stream.Position -= readSize - toWriteSize;
+                                }
                             }
                             else
                             {
