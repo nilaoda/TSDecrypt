@@ -33,6 +33,7 @@ namespace TSDecryptGUI
         bool EXIT_AFTER_DONE = false;
         bool DELETE_AFTER_DONE = false;
         bool OVER_WRITTEN = false;
+        bool REALTIME_CHECK = false; //实时检测正确性
 
 
         public MainWindow()
@@ -369,6 +370,11 @@ namespace TSDecryptGUI
             {
                 foreach (var oneFile in input.Split(';'))
                 {
+                    var pids = new List<int>();
+                    if (REALTIME_CHECK)
+                    {
+                        pids.AddRange(Util.CheckIsEncrypted(oneFile, offset).Item2);
+                    }
                     using (var stream = new FileStream(oneFile, FileMode.Open, FileAccess.Read))
                     {
                         //偏移
@@ -393,6 +399,26 @@ namespace TSDecryptGUI
                             var result = tsdecrypt.DecryptBytes(readSize, ref buffer);
                             if (result != -1)
                             {
+                                //尝试检测解密结果
+                                if (REALTIME_CHECK)
+                                {
+                                    var checkResult = Util.CheckPesIsRight(buffer, pids, result);
+                                    if (checkResult >= 0)
+                                    {
+                                        var toWriteSize = checkResult * PACKET_SIZE;
+                                        output.Write(buffer, 0, toWriteSize);
+                                        DE_SIZE += toWriteSize;
+                                        stream.Position -= readSize - toWriteSize;
+                                        Console.WriteLine($"解密异常：{stream.Position}");
+                                        File.WriteAllText(outpout + ".peserror.log",
+                                            $"Source: {input}{Environment.NewLine}{Environment.NewLine}" +
+                                            $"Stopped at #{stream.Position} of {stream.Length}, {stream.Position / 188} packets processed(NOT ACCURATE)."
+                                            );
+                                        DONE = true;
+                                        continue;
+                                    }
+                                }
+
                                 if (result == (readSize / PACKET_SIZE)) 
                                 {
                                     output.Write(buffer, 0, readSize);
@@ -440,6 +466,11 @@ namespace TSDecryptGUI
         private void Chk_Del_Checked(object sender, RoutedEventArgs e)
         {
             DELETE_AFTER_DONE = Chk_Del.IsChecked == true;
+        }
+
+        private void Chk_RealtimeCheckCW_Checked(object sender, RoutedEventArgs e)
+        {
+            REALTIME_CHECK = Chk_RealtimeCheckCW.IsChecked == true;
         }
     }
 }

@@ -79,7 +79,7 @@ namespace TSDecryptGUI
                     var buffer = new byte[188];
                     var buffer2 = new byte[188];
                     stream.Read(buffer, 0, buffer.Length);
-                    stream.Read(buffer2, 0, buffer.Length);
+                    stream.Read(buffer2, 0, buffer2.Length);
                     if (buffer[0] == 0x47 && buffer2[0] == 0x47)
                     {
                         stream.Position = offset;
@@ -132,6 +132,24 @@ namespace TSDecryptGUI
         /// <summary>
         /// 判断是否加密并返回PID
         /// </summary>
+        /// <param name="file"></param>
+        /// <param name="count">置信次数</param>
+        /// <returns></returns>
+        public static Tuple<bool, int[]> CheckIsEncrypted(string file, long offset = 0)
+        {
+            var data = new byte[20 * 1024 * 1024];
+            using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+            {
+                //偏移
+                if (offset < stream.Length) stream.Position = offset;
+                stream.Read(data, 0, data.Length);
+            }
+            return CheckIsEncrypted(data);
+        }
+
+        /// <summary>
+        /// 判断是否加密并返回PID
+        /// </summary>
         /// <param name="data"></param>
         /// <param name="count">置信次数</param>
         /// <returns></returns>
@@ -149,7 +167,7 @@ namespace TSDecryptGUI
                     var buffer = new byte[188];
                     var buffer2 = new byte[188];
                     stream.Read(buffer, 0, buffer.Length);
-                    stream.Read(buffer2, 0, buffer.Length);
+                    stream.Read(buffer2, 0, buffer2.Length);
                     if (buffer[0] == 0x47 && buffer2[0] == 0x47)
                     {
                         stream.Position = offset;
@@ -221,6 +239,52 @@ namespace TSDecryptGUI
             tsdecrypt.DecryptBytes(ts3.Length, ref ts3);
             if (!(ts3[pesIndex3] == 0x00 && ts3[pesIndex3 + 1] == 0x00 && ts3[pesIndex3 + 2] == 0x01)) return false;
             return true;
+        }
+
+        /// <summary>
+        /// 检测是否正确解密
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="pids"></param>
+        /// <param name="packetCount"></param>
+        /// <returns>出现问题的包序号(0开始)</returns>
+        public static int CheckPesIsRight(byte[] data, List<int> pids, long packetCount)
+        {
+            var result = -1; // -1是没问题
+            var buffer = new byte[188];
+            using (var stream = new MemoryStream(data))
+            {
+                for (int i = 0; i < packetCount; i++)
+                {
+                    stream.Read(buffer, 0, buffer.Length);
+
+                    var tsHeaderInt = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? buffer.Take(4).Reverse().ToArray() : buffer.Take(4).ToArray(), 0);
+                    var pid = (tsHeaderInt & 0x1fff00) >> 8;
+
+                    if (pid > 8191 || pid <= 32 || !pids.Contains((int)pid)) 
+                        continue;
+
+                    var adaptationControl = (tsHeaderInt & 0x30) >> 4;
+                    var payloadUnitStart = (tsHeaderInt & 0x400000) >> 22;
+                    if (payloadUnitStart != 1)
+                        continue;
+                    if (adaptationControl == 3)
+                    {
+                        //adaptationField长度
+                        var adaptationFieldLength = (int)buffer[4];
+                        //跳过adaptationField
+                        var startIndex = 5 + adaptationFieldLength;
+                        if (!(buffer[startIndex] == 0x00 && buffer[startIndex + 1] == 0x00 && buffer[startIndex + 2] == 0x01)) return i;
+                    }
+                    else if (adaptationControl == 1)
+                    {
+                        var startIndex = 4;
+                        if (!(buffer[startIndex] == 0x00 && buffer[startIndex + 1] == 0x00 && buffer[startIndex + 2] == 0x01)) return i;
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }
